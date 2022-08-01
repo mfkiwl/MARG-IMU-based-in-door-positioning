@@ -1,4 +1,4 @@
- function [z_pre,z_obs,H] = h(state_type,X,obs_type,obs,para)
+ function [z_pre,z_obs,H] = h_meas(state_type,X,obs_type,obs,para)
 q0 = X(1); q1 = X(2); q2 = X(3); q3 = X(4);
 z_obs = obs;
 if strcmp(obs_type,'gn')
