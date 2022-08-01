@@ -2,8 +2,11 @@ marker = [0, 0;0,1.2;0, 2.4;0, 3.6;0, 4.8;0, 6.0;0, 7.2;0, 8.4;0, 9.6;
     -1.2, 9.6;
     -2.4, 9.6;-2.4, 8.4;-2.4,7.2;-2.4,6.0;-2.4,4.8;-2.4,3.6;-2.4, 2.4;-2.4, 1.2;-2.4, 0;
     -1.2, 0;0, 0];
-figure
-plot(marker(:,1),marker(:,2),'*-')
+figure;hold on
+plot(marker(:,1),marker(:,2),'-*')
+plot(marker(1,1),marker(1,2),'rp','markerface','r','markersize',12)
+box on
+axis equal;ylim([-0.5,10]);
 
 path_length = sum(sqrt(sum((marker(2:end,:)-marker(1:end-1,:)).^2,2)));
 
