@@ -18,7 +18,7 @@ function [zvd,testSta] = zeroVelocityDetector(imu,zvdConfig)
 %   zvdConfig.g
 %   zvdConfig.sigma_a
 %   zvdConfig.sigma_g
-%
+% Copyright(c) by ??
 
 % Allocate memory
 zvd = zeros(1,length(imu.acc));
