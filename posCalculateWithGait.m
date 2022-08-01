@@ -204,9 +204,8 @@ end
 % end
 % figure;hold on;plot(position_z,':k');plot(Pz_RemoveErr,'b');
 
-
-
     otherwise
+        error('wrong');
 end
 %% plotting
 figure
