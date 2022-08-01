@@ -1,130 +1,214 @@
-function  [pos,V_correct,arr_gait_time,stationaryStart,stationaryEnd,stationary,Test_statistics]=posCalculateWithGait(imu,a)
-%输入imu: 三轴加速度、三轴角速度、三轴磁强大小
-%输入a:剔除重力后的三轴加速度
-%输出position_x,position_y,position_z：位置的三维坐标
-%输出arr_gait_time：站立期开始和结束采样点组成的矩阵
-%输出stationaryStart,stationaryEnd：站立期结束和开始的采样点
-%输出stationary：检测出的摆动期采样点和站立期采样点
-%输出Test_statistics：加速度和角速度共同计算的统计量
+function  [pos,V_correct]=posCalculateWithGait(a,arr_gait_time,Ts,type)
+% Inputs: 
+%     a: Motion acceleration under n-frame
+%     arr_gait_time: gait time index, 1st row is end of ZVI, 2nd row is start
+%     of ZVI
+%     Ts: sampling time of the IMU
+%     type: 0.5 - use average values to calculate velocity and position;
+%           1 - directly use measurements to calculate velocity and position
+% Outputs:
+%     pos: corrected position
+%     V_correct: corrected velocity
+%
+% by Xiaofeng Ma
 
-%步态周期划分
-global glv;
-g=glv.g0;
-% imu = foot_imu1;a = foot_accn';
-[arr_gait_time,stationaryStart,stationaryEnd,stationary,Test_statistics,~]=gait_devide_ZVD_MXF(imu,g);
-% figure;plot(foot_imu1.gyros(:,1));hold on;plot(stationary);
+%%
+% [arr_gait_time,~,~,~,~] = gaitDivide(imu,glv.g0);
+
 N=length(a);
 n=length(arr_gait_time);
-t = 0:imu.ts:imu.ts*(length(imu.acc)-1);
-%%
-%速度计算
-Vx = zeros(1,N);
-Vy = zeros(1,N);
-Vz = zeros(1,N);
+t = 0:Ts:Ts*(length(a)-1);
+
+%% Variable space allocation
+% ############## velocity ##############
+% semi-corrected velocity
+Vx = zeros(1,N); Vy = zeros(1,N); Vz = zeros(1,N);
+% uncorrected velocity
 V = zeros(3,N);
+% corrected velocity
+Error_x = zeros(1,n); Error_y = zeros(1,n); Error_z = zeros(1,n);
+Vx_RemoveErr = zeros(1,N); Vy_RemoveErr = zeros(1,N); Vz_RemoveErr = zeros(1,N);
+
+% ############## position ##############
+% position calculated through corrected velocity (Vi_RemoveErr, i=x,y,z)
+position_x= zeros(1,N); position_y= zeros(1,N); position_z= zeros(1,N);
+% position calculated through swing phase (Vx Vy Vz)
+position0_x= zeros(1,N); position0_y= zeros(1,N); position0_z= zeros(1,N);
+% position calculated through uncorrected velocity (V)
+position1_x= zeros(1,N); position1_y= zeros(1,N); position1_z= zeros(1,N);
+
+switch type
+    case 1
+%% velocity calculationg
+% ########## integrating over all data ##########
 for i=1:1:N-1
-V(:,i+1)= V(:,i)+(a(:,i)+a(:,i+1))*imu.ts/2;   
+    V(:,i+1)= V(:,i)+a(:,i)*Ts;   
 end
 figure;
 subplot(311);plot(t',V(1,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
 subplot(312);plot(t',V(2,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
 subplot(313);plot(t',V(3,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-suptitle('对所有数据积分得到的速度')
+sgtitle('Velocity obtained by integrating over all data')
+
+% ########## integrating over the swing phase only ##########
 for i=1:1:n
-    for j=arr_gait_time(1,i):arr_gait_time(2,i)%对摆动期进行积分
-     Vx(1,j+1) =Vx(1,j)+ (a(1,j) + a(1,j+1))*imu.ts/2;
-     Vy(1,j+1) =Vy(1,j)+ (a(2,j) + a(2,j+1))*imu.ts/2;
-     Vz(1,j+1) =Vz(1,j)+ (a(3,j) + a(3,j+1))*imu.ts/2;
+    for j=arr_gait_time(1,i):arr_gait_time(2,i) % swing phase
+        Vx(1,j+1) =Vx(1,j)+ a(1,j)*Ts;
+        Vy(1,j+1) =Vy(1,j)+ a(2,j)*Ts;
+        Vz(1,j+1) =Vz(1,j)+ a(3,j)*Ts;
     end
 end
 figure;
 subplot(311);plot(t',Vx',':','linewidth',1.5,'color',RGB('#333333'));hold on;
 subplot(312);plot(t',Vy',':','linewidth',1.5,'color',RGB('#333333'));hold on;
 subplot(313);plot(t',Vz',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-suptitle('仅对摆动期积分得到的速度')
-%%
-%偏差计算
-Error_x = zeros(1,n);
-Error_y = zeros(1,n);
-Error_z = zeros(1,n);
-for i=1:1:n
-    Error_x(1,i) = Vx(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*imu.ts);
-    Error_y(1,i) = Vy(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*imu.ts);
-    Error_z(1,i) = Vz(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*imu.ts);
+sgtitle('Velocity obtained by integrating over the swing phase only')
+
+% ########## velocity with drift removing ##########
+% ------------ drift calculating ----------
+for i=1:1:n % drift at each end of swing phase
+    Error_x(1,i) = Vx(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
+    Error_y(1,i) = Vy(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
+    Error_z(1,i) = Vz(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
 end
 figure;
 subplot(311);plot(Error_x',':','linewidth',1.5,'color',RGB('#333333'));hold on;
 subplot(312);plot(Error_y',':','linewidth',1.5,'color',RGB('#333333'));hold on;
 subplot(313);plot(Error_z',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-suptitle('ZVI处计算的速度误差')
-%%
-%剔除偏差后速度计算
-Vx_RemoveErr = zeros(1,N);
-Vy_RemoveErr = zeros(1,N);
-Vz_RemoveErr = zeros(1,N);
+sgtitle('Velocity error calculated at ZVI')
+
+% ------------ removing the drift linearly ------------
 for i=1:1:n
     for j=arr_gait_time(1,i):arr_gait_time(2,i)
-        Vx_RemoveErr(1,j) = Vx(1,j) -Error_x(1,i) * imu.ts *(j-arr_gait_time(1,i));
-        Vy_RemoveErr(1,j) = Vy(1,j) -Error_y(1,i) * imu.ts *(j-arr_gait_time(1,i));
-        Vz_RemoveErr(1,j) = Vz(1,j) -Error_z(1,i) * imu.ts *(j-arr_gait_time(1,i));
+        Vx_RemoveErr(1,j) = Vx(1,j) -Error_x(1,i) * Ts *(j-arr_gait_time(1,i));
+        Vy_RemoveErr(1,j) = Vy(1,j) -Error_y(1,i) * Ts *(j-arr_gait_time(1,i));
+        Vz_RemoveErr(1,j) = Vz(1,j) -Error_z(1,i) * Ts *(j-arr_gait_time(1,i));
      end
 end
-
-%     for j=1:12944
-%          vz(j,1) = Vwaist(3,j) -ve* 0.01 *j;
-%      end
-% vz = zeros(12944,1);
 figure;
 subplot(311);plot(t',Vx_RemoveErr','-','linewidth',1,'color',RGB('#FF6666'));
 subplot(312);plot(t',Vy_RemoveErr','-','linewidth',1,'color',RGB('#99CC66'));
 subplot(313);plot(t',Vz_RemoveErr','-','linewidth',1,'color',RGB('#0099FF'));
-suptitle('线性方式剔除误差后得到的速度')
+sgtitle('Velocity obtained by eliminating errors throug linear method')
 
-% Vx_RemoveErr = Vx;
-% Vy_RemoveErr = Vy;
-% Vz_RemoveErr = Vz;
-%%
-%位置计算
-% 修正速度后的位置
-position_x= zeros(1,N);
-position_y= zeros(1,N);
-position_z= zeros(1,N);
-% 仅将ZVI处速度设为零，摆动期未修正
-position0_x= zeros(1,N);
-position0_y= zeros(1,N);
-position0_z= zeros(1,N);
-% 完全未修正
-position1_x= zeros(1,N);
-position1_y= zeros(1,N);
-position1_z= zeros(1,N);
-% flag = 'foot';
+%% position calculating
 for i=1:1:N-1
 
-     position_x(1,i+1) = position_x(1,i) +   (Vx_RemoveErr(1,i)+ Vx_RemoveErr(1,i+1))* imu.ts/2;
-     position_y(1,i+1) = position_y(1,i) +   (Vy_RemoveErr(1,i)+ Vy_RemoveErr(1,i+1))* imu.ts/2;
-     position_z(1,i+1) = position_z(1,i) +   (Vz_RemoveErr(1,i)+ Vz_RemoveErr(1,i+1))* imu.ts/2;
+     position_x(1,i+1) = position_x(1,i) + Vx_RemoveErr(1,i) * Ts;
+     position_y(1,i+1) = position_y(1,i) + Vy_RemoveErr(1,i) * Ts;
+     position_z(1,i+1) = position_z(1,i) + Vz_RemoveErr(1,i) * Ts;
      
-     position0_x(1,i+1) = position0_x(1,i) +   (Vx(1,i)+ Vx(1,i+1))* imu.ts/2;
-     position0_y(1,i+1) = position0_y(1,i) +   (Vy(1,i)+ Vy(1,i+1))* imu.ts/2;
-     position0_z(1,i+1) = position0_z(1,i) +   (Vz(1,i)+ Vz(1,i+1))* imu.ts/2;
+     position0_x(1,i+1) = position0_x(1,i) + Vx(1,i) * Ts;
+     position0_y(1,i+1) = position0_y(1,i) + Vy(1,i) * Ts;
+     position0_z(1,i+1) = position0_z(1,i) + Vz(1,i) * Ts;
      
-     position1_x(1,i+1) = position1_x(1,i) +   (V(1,i)+ V(1,i+1))* imu.ts/2;
-     position1_y(1,i+1) = position1_y(1,i) +   (V(2,i)+ V(2,i+1))* imu.ts/2;
-     position1_z(1,i+1) = position1_z(1,i) +   (V(3,i)+ V(3,i+1))* imu.ts/2;
+     position1_x(1,i+1) = position1_x(1,i) + V(1,i) * Ts;
+     position1_y(1,i+1) = position1_y(1,i) + V(2,i) * Ts;
+     position1_z(1,i+1) = position1_z(1,i) + V(3,i) * Ts;
     
 end
-% % 修正高度
+
+% % correcting height on a floor
 % PError_z = zeros(1,n);
 % for i=1:1:n
-%      PError_z(1,i) = position_z(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*imu.ts);
+%      PError_z(1,i) = position_z(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
 % end
 % Pz_RemoveErr = zeros(1,N);
 % for i=1:1:n
 %     for j=arr_gait_time(1,i):arr_gait_time(2,i)
-%           Pz_RemoveErr(1,j) = position_z(1,j) -PError_z(1,i) * imu.ts *(j-arr_gait_time(1,i));
+%           Pz_RemoveErr(1,j) = position_z(1,j) -PError_z(1,i) * Ts *(j-arr_gait_time(1,i));
 %      end
 % end
 % figure;hold on;plot(position_z,':k');plot(Pz_RemoveErr,'b');
+
+    case 0.5
+%% velocity calculationg
+% ########## integrating over all data ##########
+for i=1:1:N-1
+    V(:,i+1)= V(:,i)+(a(:,i)+a(:,i+1))*Ts/2;   
+end
+figure;
+subplot(311);plot(t',V(1,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(312);plot(t',V(2,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(313);plot(t',V(3,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+sgtitle('Velocity obtained by integrating over all data')
+
+% ########## integrating over the swing phase only ##########
+for i=1:1:n
+    for j=arr_gait_time(1,i):arr_gait_time(2,i) % swing phase
+        Vx(1,j+1) =Vx(1,j)+ (a(1,j) + a(1,j+1))*Ts/2;
+        Vy(1,j+1) =Vy(1,j)+ (a(2,j) + a(2,j+1))*Ts/2;
+        Vz(1,j+1) =Vz(1,j)+ (a(3,j) + a(3,j+1))*Ts/2;
+    end
+end
+figure;
+subplot(311);plot(t',Vx',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(312);plot(t',Vy',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(313);plot(t',Vz',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+sgtitle('Velocity obtained by integrating over the swing phase only')
+
+% ########## velocity with drift removing ##########
+% ------------ drift calculating ----------
+for i=1:1:n % drift at each end of swing phase
+    Error_x(1,i) = Vx(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
+    Error_y(1,i) = Vy(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
+    Error_z(1,i) = Vz(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
+end
+figure;
+subplot(311);plot(Error_x',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(312);plot(Error_y',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(313);plot(Error_z',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+sgtitle('Velocity error calculated at ZVI')
+
+% ------------ removing the drift linearly ------------
+for i=1:1:n
+    for j=arr_gait_time(1,i):arr_gait_time(2,i)
+        Vx_RemoveErr(1,j) = Vx(1,j) -Error_x(1,i) * Ts *(j-arr_gait_time(1,i));
+        Vy_RemoveErr(1,j) = Vy(1,j) -Error_y(1,i) * Ts *(j-arr_gait_time(1,i));
+        Vz_RemoveErr(1,j) = Vz(1,j) -Error_z(1,i) * Ts *(j-arr_gait_time(1,i));
+     end
+end
+figure;
+subplot(311);plot(t',Vx_RemoveErr','-','linewidth',1,'color',RGB('#FF6666'));
+subplot(312);plot(t',Vy_RemoveErr','-','linewidth',1,'color',RGB('#99CC66'));
+subplot(313);plot(t',Vz_RemoveErr','-','linewidth',1,'color',RGB('#0099FF'));
+sgtitle('Velocity obtained by eliminating errors throug linear method')
+
+%% position calculating
+for i=1:1:N-1
+
+     position_x(1,i+1) = position_x(1,i) +   (Vx_RemoveErr(1,i)+ Vx_RemoveErr(1,i+1))* Ts/2;
+     position_y(1,i+1) = position_y(1,i) +   (Vy_RemoveErr(1,i)+ Vy_RemoveErr(1,i+1))* Ts/2;
+     position_z(1,i+1) = position_z(1,i) +   (Vz_RemoveErr(1,i)+ Vz_RemoveErr(1,i+1))* Ts/2;
+     
+     position0_x(1,i+1) = position0_x(1,i) +   (Vx(1,i)+ Vx(1,i+1))* Ts/2;
+     position0_y(1,i+1) = position0_y(1,i) +   (Vy(1,i)+ Vy(1,i+1))* Ts/2;
+     position0_z(1,i+1) = position0_z(1,i) +   (Vz(1,i)+ Vz(1,i+1))* Ts/2;
+     
+     position1_x(1,i+1) = position1_x(1,i) +   (V(1,i)+ V(1,i+1))* Ts/2;
+     position1_y(1,i+1) = position1_y(1,i) +   (V(2,i)+ V(2,i+1))* Ts/2;
+     position1_z(1,i+1) = position1_z(1,i) +   (V(3,i)+ V(3,i+1))* Ts/2;
+    
+end
+
+% % correcting height on a floor
+% PError_z = zeros(1,n);
+% for i=1:1:n
+%      PError_z(1,i) = position_z(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
+% end
+% Pz_RemoveErr = zeros(1,N);
+% for i=1:1:n
+%     for j=arr_gait_time(1,i):arr_gait_time(2,i)
+%           Pz_RemoveErr(1,j) = position_z(1,j) -PError_z(1,i) * Ts *(j-arr_gait_time(1,i));
+%      end
+% end
+% figure;hold on;plot(position_z,':k');plot(Pz_RemoveErr,'b');
+
+
+
+    otherwise
+end
+%% plotting
 figure
 plot(position_x,position_y);hold on;
 plot(position0_x,position0_y);
@@ -135,7 +219,7 @@ legend({'uncorrected'});
 
 V_correct = [Vx_RemoveErr;Vy_RemoveErr;Vz_RemoveErr]';
 
-pos = ([position_x;position_y;position_z]')*1;%kou_yun5 *1.055 新主楼小腿手动给零速率区间1.023 新主楼脚部1.033
+pos = ([position_x;position_y;position_z]');
 e=(pos(2:end,:)-pos(1:end-1,:));
 sum(sqrt(e(:,1).^2+e(:,2).^2))
 % figure;plot(pos(:,1),pos(:,2))
