@@ -23,7 +23,11 @@ heading = {'Allan Deviation - Acc_x';'Allan Deviation - Acc_y';'Allan Deviation 
 % data = footstatic;
 
 load('D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\static\VNYMR.mat');
+load('D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\Allan static\Allan static.mat');
 data = [ymr.accel/glv.g0 ymr.gyro*glv.deg];
+
+
+data = data(1:1080000,:);
 
 % [avar,tau] = allanvar(ymr.accel/glv.g0,'octave',50);
 % figure
