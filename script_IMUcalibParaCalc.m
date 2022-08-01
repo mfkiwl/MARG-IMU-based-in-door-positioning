@@ -50,10 +50,14 @@ by = (ayum(2)+aydm(2))/2/glv.g0;
 bz = (azum(3)+azdm(3))/2/glv.g0;
 
 %% magnetometer
-filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\mag_fit_out\VNYMR.csv'];
+filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\mag_fit_out\VNYMR.csv'];
+filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\mag_fit_indoor1\VNYMR.csv'];
+filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\mag_fit_indoor2\VNYMR.csv'];
+
+
 data = xlsread(filename,1);
 
-mag = data(:,4:6);
+mag = data(:,4:6)*100; % unit Gauss (VN100), converted into uT.
 
 
 [A,b,expmfs] = magcal(mag); % calibration coefficients
@@ -74,3 +78,30 @@ zlabel('uT')
 legend('Uncalibrated Samples', 'Calibrated Samples','Location', 'southoutside')
 title("Uncalibrated vs Calibrated" + newline + "Magnetometer Measurements")
 hold off
+
+for trial = 1:10
+    filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\ellip start ',num2str(trial),'\VNYMR.csv'];
+    data = xlsread(filename,1);
+
+    mag = data(:,4:6)*100; % unit Gauss (VN100), converted into uT.
+
+
+    [A,b,expmfs] = magcal(mag) % calibration coefficients
+    expmfs % Dipaly expected  magnetic field strength in uT
+    
+    C = (mag-b)*A; % calibrated data
+
+figure
+plot3(mag(:,1),mag(:,2),mag(:,3),'LineStyle','none','Marker','X','MarkerSize',5)
+hold on
+grid(gca,'on')
+plot3(C(:,1),C(:,2),C(:,3),'LineStyle','none','Marker', ...
+            'o','MarkerSize',5,'MarkerFaceColor','r') 
+axis equal
+xlabel('uT')
+ylabel('uT')
+zlabel('uT')
+legend('Uncalibrated Samples', 'Calibrated Samples','Location', 'southoutside')
+title("Uncalibrated vs Calibrated" + newline + "Magnetometer Measurements")
+hold off
+end
