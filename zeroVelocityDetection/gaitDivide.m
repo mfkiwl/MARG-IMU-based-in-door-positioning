@@ -34,4 +34,8 @@ static_end_index = find([0; diff(zvi)] == -1);
 
 arr_gait_time=[static_end_index,static_start_index]';
 
+figure;hold on
+plot(imu.gyros(:,1));
+plot(zvi)
+
 end
