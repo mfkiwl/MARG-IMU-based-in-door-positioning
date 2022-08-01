@@ -16,7 +16,7 @@ global glv;
 
 % ### IMU specifications of VN100
 bGstab = 1e-12*0.02;%10/3600*glv.rad;
-
+bAstab = 0.04e-3;
 if isempty(P0) || isempty(Q0)
 switch state_type
     case 'q'      
@@ -27,7 +27,7 @@ switch state_type
         Q = diag([0;0;0;0;bGstab;bGstab;bGstab]);
     case 'q bG bA'
         P = diag([0.01;0.01;0.01;0.01;0;0;0;0;0;0]);
-        Q = diag([0;0;0;0;0;0;0;0;0;0]);
+        Q = diag([0;0;0;0;bGstab;bGstab;bGstab;bAstab;bAstab;bAstab]);
     otherwise
 end
 else
