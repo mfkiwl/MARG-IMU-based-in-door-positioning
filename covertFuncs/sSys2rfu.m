@@ -1,5 +1,5 @@
 function Cns = sSys2rfu(sSys,order)
-% Calculate DCM from s-frame to n-frame in for a static situation.
+% Calculate DCM from s-frame to n-frame for a static situation.
 % Notes:   r:right l:left f:front b:back u:up d:down
 %              n-frame direction: rfu
 % Prototype:   Cns = s2rfuStatic('lfu')
@@ -18,6 +18,8 @@ if isa(sSys,'double')
 end
 
 switch sSys
+    case 'flu'
+        Csn = dcm('z',pi/2);
     case 'rfu'
         Csn = eye(3);  
     case 'frd'
