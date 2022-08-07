@@ -7,15 +7,18 @@ function [q,att]=alignbyAccMagatStatic(Acc, Mag, order)
 %              order - order of rotation of  DCM construction
 % Output: att - Eular attitude
 %               q - quarternion
+% Notes: 
+% The three axes of the IMU point up to the right, front, and up of the carrier. 
 
-% Copyright(c) 2019-2022, by Xiaofeng Ma, All rights reserved.
-% 29/04/2020, 31/05/2022
+% by Xiaofeng Ma
+
 
 fx=mean(Acc(:,1));
 fy=mean(Acc(:,2));
 fz=mean(Acc(:,3));
 
 yaw=0;
+
 switch order
     case 'zyx'
         pitch=atan2(fy,fz); 
@@ -29,22 +32,25 @@ end
 
 
 if ~isempty(Mag)
-%     phi=-6.95*pi/180; % �����Ĵ�ƫ��/rad
-    phi=0; 
+%     phi=-6.95*pi/180;
+    declination = 9.83*pi/180; % @ otaniemi (60.188515N, 24.832481E), Finland.
     mx=mean(Mag(:,1));
     my=mean(Mag(:,2));
     mz=mean(Mag(:,3));
     
 switch order
     case 'zyx'
-   yaw=atan2(my*cos(pitch)-mz*sin(pitch),...
-       mx*cos(roll)+my*sin(pitch)*sin(roll)+mz*cos(pitch)*sin(roll))+phi;       
+        hy = my*cos(pitch)-mz*sin(pitch);
+        hx = mx*cos(roll)+my*sin(pitch)*sin(roll)+mz*cos(pitch)*sin(roll);   
     case 'zxy'
-   yaw=atan2(mx*sin(roll)*sin(pitch)+my*cos(pitch)-mz*cos(roll)*sin(pitch),...
-       mx*cos(roll)+mz*sin(roll))+phi;      
+        hx = mx*cos(roll)+mz*sin(roll);
+        hy = mx*sin(roll)*sin(pitch)+my*cos(pitch)-mz*cos(roll)*sin(pitch);    
     otherwise
         error('undefined order');
 end
+
+yaw = atan2(hx,hy) + declination;
+
 end
 
 att=[pitch,roll,yaw]';
