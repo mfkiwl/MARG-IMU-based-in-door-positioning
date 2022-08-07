@@ -37,8 +37,7 @@ switch product
         imu.gyros = (sSys2rfu('rfu')*file(:,4:6)')' * glv.rad; % deg/s converted to rad/s
         imu.mag = (sSys2rfu('rfu')*file(:,11:13)')'; % ?
         imu.ts = 1/100;
-
-    otherwise
+    otherwise,error('undefined');
 end
 
 if exist('Ts',"var")
