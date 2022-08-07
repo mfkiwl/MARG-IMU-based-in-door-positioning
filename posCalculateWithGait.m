@@ -1,4 +1,4 @@
-function  [pos,V_correct]=posCalculateWithGait(a,arr_gait_time,Ts,type)
+function  [pos,V_correct]=posCalculateWithGait(a,arr_gait_time,Ts,type,plot_flag)
 % Inputs: 
 %     a: Motion acceleration under n-frame
 %     arr_gait_time: gait time index, 1st row is end of ZVI, 2nd row is start
@@ -44,11 +44,6 @@ switch type
 for i=1:1:N-1
     V(:,i+1)= V(:,i)+a(:,i)*Ts;   
 end
-figure;
-subplot(311);plot(t',V(1,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(312);plot(t',V(2,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(313);plot(t',V(3,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-sgtitle('Velocity obtained by integrating over all data')
 
 % ########## integrating over the swing phase only ##########
 for i=1:1:n
@@ -58,11 +53,6 @@ for i=1:1:n
         Vz(1,j+1) =Vz(1,j)+ a(3,j)*Ts;
     end
 end
-figure;
-subplot(311);plot(t',Vx',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(312);plot(t',Vy',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(313);plot(t',Vz',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-sgtitle('Velocity obtained by integrating over the swing phase only')
 
 % ########## velocity with drift removing ##########
 % ------------ drift calculating ----------
@@ -71,11 +61,6 @@ for i=1:1:n % drift at each end of swing phase
     Error_y(1,i) = Vy(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
     Error_z(1,i) = Vz(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
 end
-figure;
-subplot(311);plot(Error_x',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(312);plot(Error_y',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(313);plot(Error_z',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-sgtitle('Velocity error calculated at ZVI')
 
 % ------------ removing the drift linearly ------------
 for i=1:1:n
@@ -85,11 +70,6 @@ for i=1:1:n
         Vz_RemoveErr(1,j) = Vz(1,j) -Error_z(1,i) * Ts *(j-arr_gait_time(1,i));
      end
 end
-figure;
-subplot(311);plot(t',Vx_RemoveErr','-','linewidth',1,'color',RGB('#FF6666'));
-subplot(312);plot(t',Vy_RemoveErr','-','linewidth',1,'color',RGB('#99CC66'));
-subplot(313);plot(t',Vz_RemoveErr','-','linewidth',1,'color',RGB('#0099FF'));
-sgtitle('Velocity obtained by eliminating errors throug linear method')
 
 %% position calculating
 for i=1:1:N-1
@@ -127,11 +107,6 @@ end
 for i=1:1:N-1
     V(:,i+1)= V(:,i)+(a(:,i)+a(:,i+1))*Ts/2;   
 end
-figure;
-subplot(311);plot(t',V(1,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(312);plot(t',V(2,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(313);plot(t',V(3,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-sgtitle('Velocity obtained by integrating over all data')
 
 % ########## integrating over the swing phase only ##########
 for i=1:1:n
@@ -141,11 +116,6 @@ for i=1:1:n
         Vz(1,j+1) =Vz(1,j)+ (a(3,j) + a(3,j+1))*Ts/2;
     end
 end
-figure;
-subplot(311);plot(t',Vx',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(312);plot(t',Vy',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(313);plot(t',Vz',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-sgtitle('Velocity obtained by integrating over the swing phase only')
 
 % ########## velocity with drift removing ##########
 % ------------ drift calculating ----------
@@ -154,11 +124,6 @@ for i=1:1:n % drift at each end of swing phase
     Error_y(1,i) = Vy(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
     Error_z(1,i) = Vz(1,arr_gait_time(2,i)+1)/((arr_gait_time(2,i)-arr_gait_time(1,i)+1)*Ts);
 end
-figure;
-subplot(311);plot(Error_x',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(312);plot(Error_y',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-subplot(313);plot(Error_z',':','linewidth',1.5,'color',RGB('#333333'));hold on;
-sgtitle('Velocity error calculated at ZVI')
 
 % ------------ removing the drift linearly ------------
 for i=1:1:n
@@ -168,11 +133,6 @@ for i=1:1:n
         Vz_RemoveErr(1,j) = Vz(1,j) -Error_z(1,i) * Ts *(j-arr_gait_time(1,i));
      end
 end
-figure;
-subplot(311);plot(t',Vx_RemoveErr','-','linewidth',1,'color',RGB('#FF6666'));
-subplot(312);plot(t',Vy_RemoveErr','-','linewidth',1,'color',RGB('#99CC66'));
-subplot(313);plot(t',Vz_RemoveErr','-','linewidth',1,'color',RGB('#0099FF'));
-sgtitle('Velocity obtained by eliminating errors throug linear method')
 
 %% position calculating
 for i=1:1:N-1
@@ -208,6 +168,31 @@ end
         error('wrong');
 end
 %% plotting
+if strcmp(plot_flag,'fig')
+figure;
+subplot(311);plot(t',V(1,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(312);plot(t',V(2,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(313);plot(t',V(3,:)',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+sgtitle('Velocity obtained by integrating over all data')
+
+figure;
+subplot(311);plot(t',Vx',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(312);plot(t',Vy',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(313);plot(t',Vz',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+sgtitle('Velocity obtained by integrating over the swing phase only')
+
+figure;
+subplot(311);plot(Error_x',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(312);plot(Error_y',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+subplot(313);plot(Error_z',':','linewidth',1.5,'color',RGB('#333333'));hold on;
+sgtitle('Velocity error calculated at ZVI')
+
+figure;
+subplot(311);plot(t',Vx_RemoveErr','-','linewidth',1,'color',RGB('#FF6666'));
+subplot(312);plot(t',Vy_RemoveErr','-','linewidth',1,'color',RGB('#99CC66'));
+subplot(313);plot(t',Vz_RemoveErr','-','linewidth',1,'color',RGB('#0099FF'));
+sgtitle('Velocity obtained by eliminating errors throug linear method')
+
 figure
 plot(position_x,position_y);hold on;
 plot(position0_x,position0_y);
@@ -215,6 +200,8 @@ legend({'corrected','semi-corrected'});
 figure
 plot(position1_x,position1_y);
 legend({'uncorrected'});
+
+end
 
 V_correct = [Vx_RemoveErr;Vy_RemoveErr;Vz_RemoveErr]';
 
