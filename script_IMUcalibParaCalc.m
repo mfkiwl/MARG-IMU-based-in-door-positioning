@@ -1,5 +1,7 @@
 %% accelerometer
-% ### d/u means the positive axis is facing downwards/upwards vertically on the ground
+% ##################### data loading #####################
+% d/u means the positive axis is facing downwards/upwards vertically on the ground
+% ---------------- VN100 ----------------
 filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\acc xpositive calib\VNYMR.csv';
 data = xlsread(filename,1);acc_xd = data(1:1724,7:9);gyro_xd = data(1:1724,10:12);
 filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\acc xnegetive calib\VNYMR.csv';
@@ -13,6 +15,16 @@ data = xlsread(filename,1);acc_zd = data(1:1724,7:9);gyro_zd = data(1:1724,10:12
 filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\acc znegetive calib\VNYMR.csv';
 data = xlsread(filename,1);acc_zu = data(1:1724,7:9);gyro_zu = data(1:1724,10:12);
 
+% ---------------- Xsens raw ----------------
+fileindex = {'xu','xd','yu','yd','zu','zd'};
+    
+for i = 1:6
+    eval(['filename = ''D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\Xsens\calibration\A',fileindex{i},'.csv'';']);
+    data = xlsread(filename,1);
+    eval(['acc_',fileindex{i},' = data(1:1065,3:5);']);
+
+end
+
 figure
 plot(acc_xu);hold on;plot(acc_xd);
 plot(acc_yu);plot(acc_yd);
@@ -23,7 +35,7 @@ plot(acc_zu);plot(acc_zd);
 % plot(gyro_yu);plot(gyro_yd);
 % plot(gyro_zu);plot(gyro_zd);
 
-% ### calculate the mean of each axis
+% ##################### calculate the mean of each axis #####################
 axdm = mean(acc_xd);axum = mean(acc_xu);
 aydm = mean(acc_yd);ayum = mean(acc_yu);
 azdm = mean(acc_zd);azum = mean(acc_zu);
@@ -34,13 +46,13 @@ azdm = mean(acc_zd);azum = mean(acc_zu);
 % 
 % figure;plot([1,2,3],[wxpm;wxnm;wypm;wynm;wzpm;wznm])
 
-% ### Six Point Method 
+% ##################### Six Point Method #####################
 % ### S = [K b], f_calib = K^(-1)*(f_raw-b); 
 Ao = [axum' axdm' ayum' aydm' azum' azdm'];
 Ai = [[[9.80665;0;0],[-9.80665;0;0],[0;9.80665;0],[0;-9.80665;0],[0;0;9.80665],[0;0;-9.80665]];[1 1 1 1 1 1]];
 S = Ao*Ai'*inv(Ai*Ai');
 
-% ### Two Point Method
+% ##################### Two Point Method #####################
 % ??? calculated bias differs from the bias calculated by the six point method
 kx = (axum(1)-axdm(1))/2/glv.g0;
 ky = (ayum(2)-aydm(2))/2/glv.g0;
@@ -50,46 +62,36 @@ by = (ayum(2)+aydm(2))/2/glv.g0;
 bz = (azum(3)+azdm(3))/2/glv.g0;
 
 %% magnetometer
-filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\mag_fit_out\VNYMR.csv'];
-filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\mag_fit_indoor1\VNYMR.csv'];
-filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\mag_fit_indoor2\VNYMR.csv'];
-
-
-data = xlsread(filename,1);
-
-mag = data(:,4:6)*100; % unit Gauss (VN100), converted into uT.
-
-
-[A,b,expmfs] = magcal(mag); % calibration coefficients
-expmfs % Dipaly expected  magnetic field strength in uT
-
-C = (mag-b)*A; % calibrated data
-
-figure(1)
-plot3(mag(:,1),mag(:,2),mag(:,3),'LineStyle','none','Marker','X','MarkerSize',8)
-hold on
-grid(gca,'on')
-plot3(C(:,1),C(:,2),C(:,3),'LineStyle','none','Marker', ...
-            'o','MarkerSize',8,'MarkerFaceColor','r') 
-axis equal
-xlabel('uT')
-ylabel('uT')
-zlabel('uT')
-legend('Uncalibrated Samples', 'Calibrated Samples','Location', 'southoutside')
-title("Uncalibrated vs Calibrated" + newline + "Magnetometer Measurements")
-hold off
-
-for trial = 1:10
+figure;hold on
+sensor_type = 'Xsens';
+for trial = 1:5
+% ##################### data loading #####################
+if strcmp(sensor_type,'VN100')
     filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\ellip start ',num2str(trial),'\VNYMR.csv'];
-    data = xlsread(filename,1);
+%     filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\mag_fit_out\VNYMR.csv'];
+%     filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\mag_fit_indoor1\VNYMR.csv'];
+%     filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\mag_fit_indoor2\VNYMR.csv'];
+    foot = xlsread(filename,1);
+    foot_imu = dataFormat(foot,'VN100');
+elseif strcmp(sensor_type,'Xsens')
+    filename = ['D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\Xsens\calibration\A_ellip_',num2str(trial),'.csv'];
+    foot = xlsread(filename,1);
+    foot_imu = dataFormat(foot,'Xsens_raw');
+else,error('choose sensor');
+    end
 
-    mag = data(:,4:6)*100; % unit Gauss (VN100), converted into uT.
+    mag = foot_imu.mag; 
 
-
+% ##################### ellipsoid fitting #####################
     [A,b,expmfs] = magcal(mag) % calibration coefficients
-    expmfs % Dipaly expected  magnetic field strength in uT
+    expmfs % Dipaly expected  magnetic field strength in nT
     
     C = (mag-b)*A; % calibrated data
+
+%     plot(vecnorm(mag,2,2))
+%     plot(mag)
+%     plot(vecnorm(C,2,2))
+%     plot(C)
 
 figure
 plot3(mag(:,1),mag(:,2),mag(:,3),'LineStyle','none','Marker','X','MarkerSize',5)
@@ -98,9 +100,9 @@ grid(gca,'on')
 plot3(C(:,1),C(:,2),C(:,3),'LineStyle','none','Marker', ...
             'o','MarkerSize',5,'MarkerFaceColor','r') 
 axis equal
-xlabel('uT')
-ylabel('uT')
-zlabel('uT')
+xlabel('nT')
+ylabel('nT')
+zlabel('nT')
 legend('Uncalibrated Samples', 'Calibrated Samples','Location', 'southoutside')
 title("Uncalibrated vs Calibrated" + newline + "Magnetometer Measurements")
 hold off
