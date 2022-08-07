@@ -20,6 +20,8 @@ end
 switch sSys
     case 'flu'
         Csn = dcm('z',pi/2);
+    case 'bru'
+        Csn = dcm('z',-pi/2);
     case 'rfu'
         Csn = eye(3);  
     case 'frd'
