@@ -26,7 +26,7 @@ if strcmp(obs_type,'gn')
             error('wrong');
     end
 elseif strcmp(obs_type,'hnx')
-    % ### The output of magnetometers should be equal to
+    % not finished
      mn = qua2dcm(X(1:4),'Cnb')*para;
      z_pre = mn(1,:);
 else

@@ -40,6 +40,7 @@ bAstab = 0.04e-3;
         R = 0.2;
     end
 elseif strcmp(imu_product,'Xsens')
+    % -------- not finished -----------
 else
     P = diag(P0);
     Q = diag(Q0);
