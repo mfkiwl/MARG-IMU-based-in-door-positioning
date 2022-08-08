@@ -39,21 +39,6 @@ for k=1:N
 
     m(1:4) = m(1:4)/norm(m(1:4));
 
-%     if (k<783 || (k>1052 && k<1497) || k>1690) && (zvd(k)==1)
-% %         [z_pre,z_obs,H] = h(X_type,m,obs_type,obs(k,:)',para);
-%         z_obs = qua_ref(k,:)';
-%         z_pre = m(1:4);
-%         H = eye(4);
-%         R = diag([1e-10;1e-10;1e-10;1e-10]);
-%         S = H*P*H' + R;
-%         K = P*H'/S;
-%         m = m+ K*(z_obs - z_pre);
-%         P = P - K*S*K';
-%         m(1:4) = m(1:4)/norm(m(1:4));
-%     end  
-%     if (k<783 || (k>1052 && k<1497) || k>1690) && (zvd(k)==1)
-%         m(1:4) = qua_ref(k,:)';
-%     end  
     P = (P + P')/2;    
     
     MM(:,k) = m;
