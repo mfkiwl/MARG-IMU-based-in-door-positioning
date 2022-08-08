@@ -27,7 +27,7 @@ global glv
 %     glv.wie = wie;                  % the Earth's angular rate
 %     glv.meru = glv.wie/1000;        % milli earth rate unit
 %     glv.g0 = 9.7803267714;          % gravitational force at Xi An
-    glv.g0 = 9.80665;          % gravitational force at Beijing
+    glv.g0 = 9.81932;% @ Finland 60.18851524832481N % 9.80665 @ Beijing
 %     glv.mg = 1.0e-3*glv.g0;         % milli g
 %     glv.ug = 1.0e-6*glv.g0;         % micro g
 %     glv.mGal = 1.0e-3*0.01;         % milli Gal = 1cm/s^2 ~= 1.0E-6*g0
