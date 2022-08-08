@@ -55,7 +55,7 @@ if strcmp(discrete_way,'Eular')
             error('not support');
     end
 elseif strcmp(discrete_way,'exp')
-% Are we assuming this is TI with in T? othewise it is a TV sys and this discretization doesn't work.    
+% Are we assuming this is TI within T? othewise it is a TV sys and this discretization doesn't work.    
 % X_k+1 = expm(AT)*X_k;
     switch state_type
         case 'q'
@@ -63,6 +63,11 @@ elseif strcmp(discrete_way,'exp')
                                 wx, 0, wz, -wy;
                                 wy, -wz, 0, wx;
                                 wz, wy, -wx, 0;])*X; 
+            F = [1, -(Ts*wx)/2, -(Ts*wy)/2, -(Ts*wz)/2;
+                (Ts*wx)/2,          1,  (Ts*wz)/2, -(Ts*wy)/2;
+                (Ts*wy)/2, -(Ts*wz)/2,          1,  (Ts*wx)/2;
+                (Ts*wz)/2,  (Ts*wy)/2, -(Ts*wx)/2,          1];
+% -------------- The following is not finished --------------            
         case 'q bG'
             bGx = X(5); bGy = X(6); bGz = X(7);
             X_pre = expm(Ts*0.5*blkdiag([0, -wx+bGx, -wy+bGy, -wz+bGz;
