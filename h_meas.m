@@ -1,4 +1,4 @@
- function [z_pre,z_obs,H] = h_meas(state_type,X,obs_type,obs,para)
+function [z_pre,z_obs,H] = h_meas(state_type,X,obs_type,obs,para)
 q0 = X(1); q1 = X(2); q2 = X(3); q3 = X(4);
 z_obs = obs;
 if strcmp(obs_type,'gn')
@@ -26,7 +26,9 @@ if strcmp(obs_type,'gn')
             error('wrong');
     end
 elseif strcmp(obs_type,'hnx')
-    % ### The output of magnetometers should be equal to 
+    % ### The output of magnetometers should be equal to
+     mn = qua2dcm(X(1:4),'Cnb')*para;
+     z_pre = mn(1,:);
 else
 end
 

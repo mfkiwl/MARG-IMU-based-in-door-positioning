@@ -1,44 +1,41 @@
 %% accelerometer
 % ##################### data loading #####################
 % d/u means the positive axis is facing downwards/upwards vertically on the ground
+fileindex = {'xu','xd','yu','yd','zu','zd'};
 % ---------------- VN100 ----------------
-filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\acc xpositive calib\VNYMR.csv';
-data = xlsread(filename,1);acc_xd = data(1:1724,7:9);gyro_xd = data(1:1724,10:12);
-filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\acc xnegetive calib\VNYMR.csv';
-data = xlsread(filename,1);acc_xu = data(1:1724,7:9);gyro_xu = data(1:1724,10:12);
-filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\acc ypositive calib\VNYMR.csv';
-data = xlsread(filename,1);acc_yd = data(1:1724,7:9);gyro_yd = data(1:1724,10:12);
-filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\acc ynegetive calib\VNYMR.csv';
-data = xlsread(filename,1);acc_yu = data(1:1724,7:9);gyro_yu = data(1:1724,10:12);
-filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\acc zpositive calib\VNYMR.csv';
-data = xlsread(filename,1);acc_zd = data(1:1724,7:9);gyro_zd = data(1:1724,10:12);
-filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\acc znegetive calib\VNYMR.csv';
-data = xlsread(filename,1);acc_zu = data(1:1724,7:9);gyro_zu = data(1:1724,10:12);
+for i = 1:6
+    eval(['filename = ''D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\VN100\calibration\acc_',fileindex{i},'\VNYMR.csv'';']);
+    data = xlsread(filename,1);
+    eval(['acc_',fileindex{i},' = data(1:1724,7:9);']);
+    eval(['gyros_',fileindex{i},' = data(1:1724,10:12);']);
+end
 
 % ---------------- Xsens raw ----------------
-fileindex = {'xu','xd','yu','yd','zu','zd'};
-    
 for i = 1:6
     eval(['filename = ''D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\Xsens\calibration\A',fileindex{i},'.csv'';']);
     data = xlsread(filename,1);
     eval(['acc_',fileindex{i},' = data(1:1065,3:5);']);
-
+    eval(['gyros_',fileindex{i},' = data(1:1065,6:8)*glv.rad;']);
 end
 
+% ---------------- plot ----------------
 figure
 plot(acc_xu);hold on;plot(acc_xd);
 plot(acc_yu);plot(acc_yd);
 plot(acc_zu);plot(acc_zd);
 
-% figure
-% plot(gyro_xu);hold on;plot(gyro_xd);
-% plot(gyro_yu);plot(gyro_yd);
-% plot(gyro_zu);plot(gyro_zd);
+figure
+plot(gyros_xu);hold on;plot(gyros_xd);
+plot(gyros_yu);plot(gyros_yd);
+plot(gyros_zu);plot(gyros_zd);
 
 % ##################### calculate the mean of each axis #####################
 axdm = mean(acc_xd);axum = mean(acc_xu);
 aydm = mean(acc_yd);ayum = mean(acc_yu);
 azdm = mean(acc_zd);azum = mean(acc_zu);
+% 
+% std(acc_yu,0,1)
+% std(gyros_xu,0,1)
 
 % wxpm = mean(gyro_xu);wxnm = mean(gyro_xd);
 % wypm = mean(gyroyp);wynm = mean(gyroyn);
@@ -49,17 +46,17 @@ azdm = mean(acc_zd);azum = mean(acc_zu);
 % ##################### Six Point Method #####################
 % ### S = [K b], f_calib = K^(-1)*(f_raw-b); 
 Ao = [axum' axdm' ayum' aydm' azum' azdm'];
-Ai = [[[9.80665;0;0],[-9.80665;0;0],[0;9.80665;0],[0;-9.80665;0],[0;0;9.80665],[0;0;-9.80665]];[1 1 1 1 1 1]];
+Ai = [[[glv.g0;0;0],[-glv.g0;0;0],[0;glv.g0;0],[0;-glv.g0;0],[0;0;glv.g0],[0;0;-glv.g0]];[1 1 1 1 1 1]];
 S = Ao*Ai'*inv(Ai*Ai');
 
-% ##################### Two Point Method #####################
-% ??? calculated bias differs from the bias calculated by the six point method
-kx = (axum(1)-axdm(1))/2/glv.g0;
-ky = (ayum(2)-aydm(2))/2/glv.g0;
-kz = (azum(3)-azdm(3))/2/glv.g0;
-bx = (axum(1)+axdm(1))/2/glv.g0;
-by = (ayum(2)+aydm(2))/2/glv.g0;
-bz = (azum(3)+azdm(3))/2/glv.g0;
+% % ##################### Two Point Method #####################
+% % ??? calculated bias differs from the bias calculated by the six point method
+% kx = (axum(1)-axdm(1))/2/glv.g0;
+% ky = (ayum(2)-aydm(2))/2/glv.g0;
+% kz = (azum(3)-azdm(3))/2/glv.g0;
+% bx = (axum(1)+axdm(1))/2/glv.g0;
+% by = (ayum(2)+aydm(2))/2/glv.g0;
+% bz = (azum(3)+azdm(3))/2/glv.g0;
 
 %% magnetometer
 figure;hold on

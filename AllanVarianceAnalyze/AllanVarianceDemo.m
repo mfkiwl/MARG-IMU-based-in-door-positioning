@@ -5,29 +5,37 @@
 %Changed by Zhao YongZheng @HIT 20181105
 %Changed by Ma Xiaofeng 2020
 
-% Initial MATLAB macros for figure formatting
+% Initial setting
 clear all; clc; close all;
 plot_them = 1;%if data is short :plot_them = 0
 result = zeros(4,6);
 glvs;
+
+heading = {'Allan Deviation - Acc_x';'Allan Deviation - Acc_y';'Allan Deviation - Acc_z';
+    'Allan Deviation - Gyros_x';'Allan Deviation - Gyros_y';'Allan Deviation - Gyros_z'};
+
 % Now feed simulated data to Allan Deviation script to compute Alla
 % Deviation and coresponding T for later analysis.
 
 % stim300 100hz deg/s
 
-heading = {'Allan Deviation - Acc_x';'Allan Deviation - Acc_y';'Allan Deviation - Acc_z';
-    'Allan Deviation - Gyros_x';'Allan Deviation - Gyros_y';'Allan Deviation - Gyros_z'};
-
-% ### data format: col1~3 acc(g),col4~6angular velocity(deg/s)
+% ########### data loading #############
+% -------------- Wit --------------
+% data format: col1~3 acc(g),col4~6angular velocity(deg/s)
 % load('footstatic');
 % data = footstatic;
 
+% -------------- VN100 --------------
 load('D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\calibration\static\VNYMR.mat');
 load('D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\calibration\Allan static\Allan static.mat');
 data = [ymr.accel/glv.g0 ymr.gyro*glv.deg];
 
-
 data = data(1:1080000,:);
+
+% -------------- Xsnes --------------
+filename = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning\data\Xsens\calibration\B_allan.csv';
+file = xlsread(filename,1); imu = dataFormat(file,'Xsens_raw');
+data = [imu.acc/glv.g0 imu.gyros*glv.deg];
 
 % [avar,tau] = allanvar(ymr.accel/glv.g0,'octave',50);
 % figure
@@ -37,6 +45,7 @@ data = data(1:1080000,:);
 % title('Allan Variance')
 % grid on
 
+%%
 col = 4;
 for col = 1:6
 Y  = data(:,col);% matrix  n*1  % deg /s 

@@ -67,7 +67,7 @@ marker = marker0 - marker0(1,:);
 
 %%
 figure;hold on
-plot(marker(:,1),marker(:,2),'-*')
+plot(marker(:,1),marker(:,2),'g:*','LineWidth',2)
 plot(marker(1,1),marker(1,2),'rp','markerface','r','markersize',12)
 box on
 axis equal;ylim([-0.5,10]);

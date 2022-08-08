@@ -1,4 +1,4 @@
 function [rpath, dpath, mytestflag] = psinsenvi()
-	rpath = '/home/aalto/MXFcode/MATLAB/MyCodes';
-	dpath = '/home/aalto/MXFcode/MATLAB/MyCodes/data/';
+	rpath = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning';
+	dpath = 'D:\MXFcodes\MATLAB\MARG-IMU-based-in-door-positioning/data/';
 	mytestflag = 0;

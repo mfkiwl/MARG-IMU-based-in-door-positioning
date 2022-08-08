@@ -1,4 +1,4 @@
-function [m,P,Q,R] = filterInitial(state_type,m0,P0,Q0,obs_type,R0)
+function [m,P,Q,R] = filterInitial(state_type,obs_type,imu_product,m0)
 m = m0;
 
 % % ### allan variance of WIT901
@@ -14,35 +14,39 @@ global glv;
 % BIa = BIa/3600;
 % dph=4.8481e-6;dphpsh=8.0802e-8;
 
-% ### IMU specifications of VN100
+
+if strcmp(imu_product,'VN100')
+    % ### IMU specifications of VN100
 bGstab = 1e-12*0.02;%10/3600*glv.rad;
 bAstab = 0.04e-3;
-if isempty(P0) || isempty(Q0)
-switch state_type
-    case 'q'      
-        P = diag([0.01;0.01;0.01;0.01]);
-        Q = diag([0;0;0;0]);        
-    case 'q bG'
-        P = diag([0.01;0.01;0.01;0.01;0;0;0]);
-        Q = diag([0;0;0;0;bGstab;bGstab;bGstab]);
-    case 'q bG bA'
-        P = diag([0.01;0.01;0.01;0.01;0;0;0;0;0;0]);
-        Q = diag([0;0;0;0;bGstab;bGstab;bGstab;bAstab;bAstab;bAstab]);
-    otherwise
-end
+    switch state_type
+        case 'q'      
+            P = diag([0.01;0.01;0.01;0.01]);
+            Q = diag([0;0;0;0]);        
+        case 'q bG'
+            P = diag([0.01;0.01;0.01;0.01;0;0;0]);
+            Q = diag([0;0;0;0;bGstab;bGstab;bGstab]);
+        case 'q bG bA'
+            P = diag([0.01;0.01;0.01;0.01;0;0;0;0;0;0]);
+            Q = diag([0;0;0;0;bGstab;bGstab;bGstab;bAstab;bAstab;bAstab]);
+        otherwise
+    end
+    if strcmp(obs_type,'gn')
+%         R = diag([0.03;0.03;0.03]*0.001*glv.g0);
+% R = diag([0.04;0.04;0.04]*0.001*glv.g0);
+        R = diag([0.04;0.04;0.04]);
+%     R = diag([0.4;0.4;0.4]);
+    elseif strcmp(obs_type,'hnx')
+        R = 0.2;
+    end
+elseif strcmp(imu_product,'Xsens')
 else
     P = diag(P0);
     Q = diag(Q0);
-end
 
-if isempty(R0)
-if strcmp(obs_type,'gn')
-    R = diag([0.04;0.04;0.04]);
-elseif strcmp(obs_type,'hnx')
-    R = 0.2;
-end
-else
-R = R0;
+
+
+
 end
 
 end
