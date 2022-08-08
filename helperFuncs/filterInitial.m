@@ -1,4 +1,4 @@
-function [m,P,Q,R] = filterInitial(state_type,obs_type,imu_product,m0)
+function [m,P,Q,R] = filterInitial(state_type,obs_type,m0)
 m = m0;
 
 % % ### allan variance of WIT901
@@ -15,9 +15,8 @@ global glv;
 % dph=4.8481e-6;dphpsh=8.0802e-8;
 
 
-if strcmp(imu_product,'VN100')
     % ### IMU specifications of VN100
-bGstab = 1e-12*0.02;%10/3600*glv.rad;
+bGstab = 10/3600*glv.rad;
 bAstab = 0.04e-3;
     switch state_type
         case 'q'      
@@ -39,15 +38,8 @@ bAstab = 0.04e-3;
     elseif strcmp(obs_type,'hnx')
         R = 0.2;
     end
-elseif strcmp(imu_product,'Xsens')
-    % -------- not finished -----------
-else
-    P = diag(P0);
-    Q = diag(Q0);
-
-
 
 
 end
 
-end
+
