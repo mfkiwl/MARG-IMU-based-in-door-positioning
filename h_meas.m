@@ -7,7 +7,13 @@ if strcmp(obs_type,'gn')
     g = para(3);
     switch state_type
         case 'q'       
-            z_pre = qua2dcm(X(1:4),'Cbn')*para;
+            % ### fb = Gbn*[0;0;g];
+%             z_pre = qua2dcm(X(1:4),'Cbn')*para;
+%             H = [-2*g*q2,  2*g*q3, -2*g*q0, 2*g*q1;
+%                  2*g*q1,  2*g*q0,  2*g*q3, 2*g*q2;
+%                  2*g*q0, -2*g*q1, -2*g*q2, 2*g*q3];
+            % ### [0;0;g] = Gnb*fb;
+            z_pre = qua2dcm(X(1:4),'nb')*para;
             H = [-2*g*q2,  2*g*q3, -2*g*q0, 2*g*q1;
                  2*g*q1,  2*g*q0,  2*g*q3, 2*g*q2;
                  2*g*q0, -2*g*q1, -2*g*q2, 2*g*q3];
