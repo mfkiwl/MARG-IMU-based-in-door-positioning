@@ -73,12 +73,15 @@ hn = Cnb*[mx;my;mz]
 hnx = mx*(q0^2+q1^2-q2^2-q3^2)+2*my*(q1*q2-q0*q3)+2*mz*(q1*q3+q0*q2)
 Jhnx = jacobian(hnx,[q0 q1 q2 q3])
 
-hq = h('q',[q0;q1;q2;q3],'gn',[fbx;fby;fbz],['0';'0';'g']);
+hq = h_meas('q',[q0;q1;q2;q3],'gn',[fbx;fby;fbz],['0';'0';'g']);
 Hq = jacobian(hq,[q0 q1 q2 q3])
 % Hq = vpa(Hq,6)
 
-hqbw = h('q bG',[q0;q1;q2;q3;bGx;bGy;bGz],'gn',[fbx;fby;fbz],['0';'0';'g']);
+hqbw = h_meas('q bG',[q0;q1;q2;q3;bGx;bGy;bGz],'gn',[fbx;fby;fbz],['0';'0';'g']);
 Hqbw = jacobian(hqbw,[q0 q1 q2 q3 bGx bGy bGz])
 
-hqbwa = h('q bG bA',[q0;q1;q2;q3;bGx;bGy;bGz;bAx;bAy;bAz],'gn',[fbx;fby;fbz],['0';'0';'g']);
+hqbwa = h_meas('q bG bA',[q0;q1;q2;q3;bGx;bGy;bGz;bAx;bAy;bAz],'gn',[fbx;fby;fbz],['0';'0';'g']);
 Hqbwa = jacobian(hqbwa,[q0 q1 q2 q3 bGx bGy bGz bAx bAy bAz])
+
+hq = h_meas('q',[q0;q1;q2;q3],'fb',[0;0;g],[fbx;fby;fbz]);
+Hq = jacobian(hq,[q0 q1 q2 q3])
