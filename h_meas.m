@@ -32,10 +32,11 @@ elseif strcmp(obs_type,'hnx')
      z_pre = mn(1,:);
 elseif strcmp(obs_type,'fb')
     % ### [0;0;g] = Gnb*fb;
-            z_pre = qua2dcm(X(1:4),'Cnb')*para;
-            H = [2*fbx*q0 - 2*fby*q3 + 2*fbz*q2, 2*fbx*q1 + 2*fby*q2 + 2*fbz*q3, 2*fby*q1 - 2*fbx*q2 + 2*fbz*q0, 2*fbz*q1 - 2*fby*q0 - 2*fbx*q3;
-                2*fbx*q3 + 2*fby*q0 - 2*fbz*q1, 2*fbx*q2 - 2*fby*q1 - 2*fbz*q0, 2*fbx*q1 + 2*fby*q2 + 2*fbz*q3, 2*fbx*q0 - 2*fby*q3 + 2*fbz*q2;
-                2*fby*q1 - 2*fbx*q2 + 2*fbz*q0, 2*fbx*q3 + 2*fby*q0 - 2*fbz*q1, 2*fby*q3 - 2*fbx*q0 - 2*fbz*q2, 2*fbx*q1 + 2*fby*q2 + 2*fbz*q3];
+    z_pre = qua2dcm(X(1:4),'Cnb')*para;
+    fbx = para(1); fby = para(2); fbz = para(3);
+    H = [2*fbx*q0 - 2*fby*q3 + 2*fbz*q2, 2*fbx*q1 + 2*fby*q2 + 2*fbz*q3, 2*fby*q1 - 2*fbx*q2 + 2*fbz*q0, 2*fbz*q1 - 2*fby*q0 - 2*fbx*q3;
+         2*fbx*q3 + 2*fby*q0 - 2*fbz*q1, 2*fbx*q2 - 2*fby*q1 - 2*fbz*q0, 2*fbx*q1 + 2*fby*q2 + 2*fbz*q3, 2*fbx*q0 - 2*fby*q3 + 2*fbz*q2;
+         2*fby*q1 - 2*fbx*q2 + 2*fbz*q0, 2*fbx*q3 + 2*fby*q0 - 2*fbz*q1, 2*fby*q3 - 2*fbx*q0 - 2*fbz*q2, 2*fbx*q1 + 2*fby*q2 + 2*fbz*q3];
         
 end
 
