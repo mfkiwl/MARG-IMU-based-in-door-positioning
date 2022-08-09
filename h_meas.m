@@ -8,12 +8,7 @@ if strcmp(obs_type,'gn')
     switch state_type
         case 'q'       
             % ### fb = Gbn*[0;0;g];
-%             z_pre = qua2dcm(X(1:4),'Cbn')*para;
-%             H = [-2*g*q2,  2*g*q3, -2*g*q0, 2*g*q1;
-%                  2*g*q1,  2*g*q0,  2*g*q3, 2*g*q2;
-%                  2*g*q0, -2*g*q1, -2*g*q2, 2*g*q3];
-            % ### [0;0;g] = Gnb*fb;
-            z_pre = qua2dcm(X(1:4),'nb')*para;
+            z_pre = qua2dcm(X(1:4),'Cbn')*para;
             H = [-2*g*q2,  2*g*q3, -2*g*q0, 2*g*q1;
                  2*g*q1,  2*g*q0,  2*g*q3, 2*g*q2;
                  2*g*q0, -2*g*q1, -2*g*q2, 2*g*q3];
@@ -35,7 +30,13 @@ elseif strcmp(obs_type,'hnx')
     % not finished
      mn = qua2dcm(X(1:4),'Cnb')*para;
      z_pre = mn(1,:);
-else
+elseif strcmp(obs_type,'fb')
+    % ### [0;0;g] = Gnb*fb;
+            z_pre = qua2dcm(X(1:4),'Cnb')*para;
+            H = [2*fbx*q0 - 2*fby*q3 + 2*fbz*q2, 2*fbx*q1 + 2*fby*q2 + 2*fbz*q3, 2*fby*q1 - 2*fbx*q2 + 2*fbz*q0, 2*fbz*q1 - 2*fby*q0 - 2*fbx*q3;
+                2*fbx*q3 + 2*fby*q0 - 2*fbz*q1, 2*fbx*q2 - 2*fby*q1 - 2*fbz*q0, 2*fbx*q1 + 2*fby*q2 + 2*fbz*q3, 2*fbx*q0 - 2*fby*q3 + 2*fbz*q2;
+                2*fby*q1 - 2*fbx*q2 + 2*fbz*q0, 2*fbx*q3 + 2*fby*q0 - 2*fbz*q1, 2*fby*q3 - 2*fbx*q0 - 2*fbz*q2, 2*fbx*q1 + 2*fby*q2 + 2*fbz*q3];
+        
 end
 
  
