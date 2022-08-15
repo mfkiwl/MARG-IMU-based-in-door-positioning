@@ -18,6 +18,10 @@ if isa(sSys,'double')
 end
 
 switch sSys
+    case 'dlf'
+        Csn = dcm('z',-pi/2)*dcm('y',pi/2);
+    case 'dfr'
+        Csn = dcm('y',pi/2);
     case 'flu'
         Csn = dcm('z',pi/2);
     case 'bru'
