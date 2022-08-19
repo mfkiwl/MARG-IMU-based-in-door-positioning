@@ -3,6 +3,7 @@
 % Copyright(c) 2009-2014, by Gongmin Yan, All rights reserved.
 % Northwestern Polytechnical University, Xi An, P.R.China
 % 09/09/2013, 31/01/2015
+% modified by Xiaofeng Ma
 
 initfile = dir('psinsinit.m');
 if isempty(initfile) % ~strcmp(initfile.name,'psinsinit.m')
@@ -20,22 +21,23 @@ for k=1:krm
 	rmpath(pk);
 end
 %% Add new PSINS directories to search path.
-rootpath = pwd;%获得当前路径
-pp = genpath(rootpath);%获得当前路径以及其下子文件夹路径
+rootpath = pwd; % get current path
+pp = genpath(rootpath); % get current folder and subfolders paths
 mytestflag = 0;
-if exist('mytest/mytestinit.m', 'file')
+if exist('mytest\mytestinit.m', 'file')
     mytestflag = 1;
 end
-datapath = [rootpath, '/data/'];
+datapath = [rootpath, '\data\'];
 
-addpath(pp); %将文件夹及其子文件夹添加到搜索路径
+addpath(pp); % Add the folder and its subfolders to the search path
 res = savepath; % disp(res);
 %% Create PSINS environment file
 fid = fopen('psinsenvi.m', 'wt');
-fprintf(fid, 'function [rpath, dpath, mytestflag] = psinsenvi()\n');
+fprintf(fid, 'function [rpath, dpath, lpath, mytestflag] = psinsenvi()\n');
 fprintf(fid, '\trpath = ''%s'';\n', rootpath);
 fprintf(fid, '\tdpath = ''%s'';\n', datapath);
 fprintf(fid, '\tmytestflag = %d;\n', mytestflag);
+fprintf(fid, '\tlpath = ''%s'';\n', []);
 fclose(fid);
 clear pp rootpath datapath res fid mytestflag;
 glvs;
