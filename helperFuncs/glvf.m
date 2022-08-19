@@ -12,6 +12,7 @@ function glv1 = glvf(Re, f, wie)
 % Copyright(c) 2009-2014, by Gongmin Yan, All rights reserved.
 % Northwestern Polytechnical University, Xi An, P.R.China
 % 14/08/2011, 10/09/2013, 09/03/2014
+% modified by Xiaofeng Ma
 global glv
     if ~exist('Re', 'var'),  Re = [];  end
     if ~exist('f', 'var'),   f = [];  end
@@ -69,6 +70,6 @@ global glv
 %     glv.pos0 = [34.246048*glv.deg; 108.909664*glv.deg; 380]; % position of INS Lab@NWPU
 %     glv.eth = []; glv.eth = earth(glv.pos0);
     %%
-    [glv.rootpath, glv.datapath, glv.mytestflag] = psinsenvi;
+    [glv.rootpath, glv.datapath, glv.lastpath, glv.mytestflag] = psinsenvi;
     glv1 = glv;
 
