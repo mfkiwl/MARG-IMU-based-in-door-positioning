@@ -3,7 +3,7 @@ function [arr_gait_time,static_start_index,static_end_index,zvi,Test_statistics]
 % ############ zero velocity interval detecting ############
 config.detector_type = 'GLRT';%'MAG';% 'MV','GLRT'
 config.window_size = 3;
-config.testStaThreshold =1.5e5;
+config.testStaThreshold = 1.5e5;
 config.g = g;
 config.sigma_a = 0.01;
 config.sigma_g = 0.1/180*pi;
@@ -16,15 +16,17 @@ static_end_index = find([0; diff(zvi)] == -1); % 1 to 0, i.e. static to move
 % The ith start follows the ith end
 
 % ############ Removing very short opposite intervals ############
-% If an swing phase is too short, it is classified as a stance phase
+
 n=length(static_start_index);
 for i=2:n
-    if(static_end_index(i,1) - static_start_index(i-1,1)< 5)
+    % ### If an stance phase is too short, it is classified as a swing phase
+    if (static_end_index(i,1) - static_start_index(i-1,1)) < 5
         zvi(static_start_index(i-1,1):static_end_index(i,1),1)=0;
     end
 end
-for i=1:n 
-    if(static_start_index(i,1) - static_end_index(i,1) < 5)
+for i=1:n
+    % ### If an swing phase is too short, it is classified as a stance phase
+    if (static_start_index(i,1) - static_end_index(i,1)) < 5
         zvi(static_end_index(i,1):static_start_index(i,1),1)=1;
     end
 end
