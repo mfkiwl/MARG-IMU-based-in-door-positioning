@@ -1,4 +1,4 @@
-function C = qua2dcm(q,flag)
+function C = qua2dcm(q,Ctype)
 % Convert attitude quaternion to direction cosine matrix(DCM).
 %
 % Prototype: Cnb = qua2dcm(q)
@@ -9,11 +9,11 @@ function C = qua2dcm(q,flag)
     q22 = q(2)*q(2); q23 = q(2)*q(3); q24 = q(2)*q(4);     
     q33 = q(3)*q(3); q34 = q(3)*q(4);  
     q44 = q(4)*q(4);
-    if strcmp(flag,'Cnb') % DCM from body-frame to navigation-frame
+    if strcmp(Ctype,'Cnb') % DCM from body-frame to navigation-frame
     C = [ q11+q22-q33-q44,  2*(q23-q14),     2*(q24+q13);
             2*(q23+q14),      q11-q22+q33-q44, 2*(q34-q12);
             2*(q24-q13),      2*(q34+q12),     q11-q22-q33+q44 ];
-    elseif strcmp(flag,'Cbn') % DCM from navigation-frame to body-frame
+    elseif strcmp(Ctype,'Cbn') % DCM from navigation-frame to body-frame
     C = [ q11+q22-q33-q44,  2*(q23+q14),     2*(q24-q13);
             2*(q23-q14),      q11-q22+q33-q44, 2*(q34+q12);
             2*(q24+q13),      2*(q34-q12),     q11-q22-q33+q44 ];        

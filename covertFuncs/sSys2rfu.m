@@ -1,21 +1,15 @@
-function Cns = sSys2rfu(sSys,order)
-% Calculate DCM from s-frame to n-frame for a static situation.
+function Cns = sSys2rfu(sSys)
+% Calculate DCM from s-frame to rfu-frame.
 % Notes:   r:right l:left f:front b:back u:up d:down
-%              n-frame direction: rfu
+
 % Prototype:   Cns = s2rfuStatic('lfu')
 % Input:   sSys - directiono of s-frame, should be recorded
 %                        manually while doing experiments.
-%             order(optional) - order of rotation of  DCM construction
-% Output:  DCM from s-frame to n-frame, vecotr_n = Cns*vecotr_s,
+% Output:  DCM from s-frame to rfu-frame, vecotr_n = Cns*vecotr_s,
 %               i.e. Cns = C^n_s
 
-% Copyright(c) 2019-2022, by Xiaofeng Ma, All rights reserved.
+% by Xiaofeng Ma.
 % 29/04/2020, 21/07/2020, 31/05/2022
-
-if isa(sSys,'double')
-    att0 = sSys;
-    sSys = 'defined';
-end
 
 switch sSys
     case 'dlf'
@@ -39,14 +33,13 @@ switch sSys
     case 'fur' 
         Csn = dcm('x',pi/2)*dcm('z',pi/2);
     case 'rdf'   
-        Csn = dcm('x',-pi/2);
-    case 'defined'
-        Csn = (att2dcm(att0,order))';        
+        Csn = dcm('x',-pi/2);        
     otherwise
         error('Undefined s-frame');
 end
 Cns = Csn';
 end
+
 function C = dcm(axis, angle)
 switch axis
     case 'x'
