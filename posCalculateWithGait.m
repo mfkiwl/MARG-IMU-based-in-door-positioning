@@ -4,8 +4,8 @@ function  [pos,V_correct]=posCalculateWithGait(a,arr_gait_time,Ts,type,plot_flag
 %     arr_gait_time: gait time index, 1st row is end of ZVI, 2nd row is start
 %     of ZVI
 %     Ts: sampling time of the IMU
-%     type: 0.5 - use average values to calculate velocity and position;
-%           1 - directly use measurements to calculate velocity and position
+%     type: Trap - trapezoidal method;
+%           Eular - 1st order Eular method
 % Outputs:
 %     pos: corrected position
 %     V_correct: corrected velocity
@@ -38,7 +38,7 @@ position0_x= zeros(1,N); position0_y= zeros(1,N); position0_z= zeros(1,N);
 position1_x= zeros(1,N); position1_y= zeros(1,N); position1_z= zeros(1,N);
 
 switch type
-    case 1
+    case 'Eular'
 %% velocity calculationg
 % ########## integrating over all data ##########
 for i=1:1:N-1
@@ -101,7 +101,7 @@ end
 % end
 % figure;hold on;plot(position_z,':k');plot(Pz_RemoveErr,'b');
 
-    case 0.5
+    case 'Trap'
 %% velocity calculationg
 % ########## integrating over all data ##########
 for i=1:1:N-1
