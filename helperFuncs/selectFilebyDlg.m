@@ -44,6 +44,8 @@ for k=2:i
 end
 fclose(fileID);
 
+disp(filepath);
+
 glvs;    
 end
 
